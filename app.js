@@ -2,7 +2,7 @@ const userCtrl = require('./user-controller');
 
 const express = require('express');
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded());
@@ -10,7 +10,7 @@ app.use(express.urlencoded());
 // routing
 app.get('/', function(req, res) {
     res.writeHead(200, {'Content-Type': 'text/html'});
-    res.write('TODO: Add simple documentation here...');
+    res.write('Created by Ericko Yaputro. See the documentation on POSTMAN collection included in the code.');
     res.end();
 });
 app.get('/user', userCtrl.getAll);

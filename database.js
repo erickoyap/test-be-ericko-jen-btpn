@@ -191,6 +191,7 @@ exports.getUser = function(query){
                                 reject(output);
                             }
                             else {
+                                // if user is found, save data to cache and resolve the output.
                                 if (result) {
                                     const output = {
                                         message: 'Successfully getting user!',
