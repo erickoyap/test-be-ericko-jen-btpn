@@ -13,8 +13,14 @@ if (process.env.REDISTOGO_URL) {
 // initiate mongodb
 const mongo = require('mongodb').MongoClient;
 const url = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-const dbName = 'ericko';
+if (process.env.MONGODB_URI){
+    var split = process.env.MONGODB_URI.split('/');
+    var mongoDbName = split[split.length-1];
+}
+const dbName = mongoDbName || 'ericko';
 const collectionName = 'users';
+
+console.log(dbName);
 
 exports.addUser = function(input){
     // console.log("Adding new user");
