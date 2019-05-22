@@ -4,6 +4,8 @@ var header = {
   'Content-Type': 'application/json; charset=utf-8'
 };
 
+db.initiateIndex();
+
 exports.getAll = function(req, res){
     db.getAllUsers()
         .then(function(result){

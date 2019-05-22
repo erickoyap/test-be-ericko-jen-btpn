@@ -20,7 +20,28 @@ if (process.env.MONGODB_URI){
 const dbName = mongoDbName || 'ericko';
 const collectionName = 'users';
 
-console.log(dbName);
+exports.initiateIndex = function(){
+    mongo.connect(url, function(err, client) {
+        if (err) {
+            const output = {
+                message: 'Failed to add user.',
+                data: err
+            };
+        }
+
+        if (client) {
+            const db = client.db(dbName);
+            const users = db.collection(collectionName);
+            users.createIndex({id:1, accountNumber:1, identityNumber:1}, function (err, result) {
+                if (err){
+                    throw err;
+                }
+
+                console.log("Index created successfully!");
+            });
+        }
+    });
+};
 
 exports.addUser = function(input){
     // console.log("Adding new user");

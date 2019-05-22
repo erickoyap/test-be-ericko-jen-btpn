@@ -1,5 +1,4 @@
 const userCtrl = require('./user-controller');
-const url = require('url');
 
 const express = require('express');
 const app = express();
