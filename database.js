@@ -1,10 +1,15 @@
+// initiate redis
+var redisClient = require('redis').createClient;
+var redis = redisClient(6379, 'localhost');
+
+// initiate mongodbs
 const mongo = require('mongodb').MongoClient;
 const url = 'mongodb://localhost:27017';
 const dbName = 'ericko';
-const tableName = 'users';
+const collectionName = 'users';
 
 exports.addUser = function(input){
-    console.log("Adding new user");
+    // console.log("Adding new user");
     return new Promise(function(resolve, reject){
         mongo.connect(url, function(err, client){
             if (err){
@@ -17,7 +22,7 @@ exports.addUser = function(input){
 
             if (client){
                 const db = client.db(dbName);
-                const users = db.collection(tableName);
+                const users = db.collection(collectionName);
                 users.insertOne({
                     id: input.id,
                     userName: input.userName,
@@ -34,7 +39,7 @@ exports.addUser = function(input){
                         reject(output);
                     }
                     else {
-                        console.log("Successfully added user!");
+                        // console.log("Successfully added user!");
                         client.close();
 
                         const output = {
@@ -50,7 +55,7 @@ exports.addUser = function(input){
 };
 
 exports.deleteUser = function(id){
-    console.log("Deleting user...");
+    // console.log("Deleting user...");
 
     return new Promise(function(resolve, reject){
         mongo.connect(url, function(err, client){
@@ -64,7 +69,7 @@ exports.deleteUser = function(id){
 
             if (client){
                 const db = client.db(dbName);
-                const users = db.collection(tableName);
+                const users = db.collection(collectionName);
                 users.deleteOne({ id: id },
                     function(err, result){
                         if (err){
@@ -76,7 +81,7 @@ exports.deleteUser = function(id){
                             reject(output);
                         }
                         else {
-                            console.log("Successfully deleted user.");
+                            // console.log("Successfully deleted user.");
                             client.close();
 
                             if (result.deletedCount > 0){
@@ -100,7 +105,7 @@ exports.deleteUser = function(id){
 };
 
 exports.getAllUsers = function(){
-    console.log("Getting all users...");
+    // console.log("Getting all users...");
     return new Promise(function(resolve,reject) {
         mongo.connect(url, function(err,client){
             if (err){
@@ -113,7 +118,7 @@ exports.getAllUsers = function(){
 
             if (client){
                 const db = client.db(dbName);
-                const users = db.collection(tableName);
+                const users = db.collection(collectionName);
                 users.find().limit(10).toArray(function(err, result){
                     client.close();
                     if (err){
@@ -124,7 +129,7 @@ exports.getAllUsers = function(){
                         reject(output);
                     }
                     else {
-                        console.log("Successfully get all users!");
+                        // console.log("Successfully get all users!");
 
                         const output = {
                             message: 'Successfully get all users!',
@@ -140,21 +145,31 @@ exports.getAllUsers = function(){
 };
 
 exports.getUser = function(query){
-    console.log("Getting user...");
+    // console.log("Getting user...");
+
+    const queryKey = query[Object.keys(query)[0]];
+
     return new Promise(function(resolve, reject){
-        mongo.connect(url, function(err,client){
-            if (err){
+        // get cache
+        redis.get(queryKey, function(errorRedis, response){
+            if (errorRedis){
                 const output = {
-                    message: 'Failed to get user.',
-                    data: err
+                    message: "Failed to get cache",
+                    data: errorRedis
                 };
-                reject(output);
+                reject(errorRedis);
             }
-            if (client) {
-                const db = client.db(dbName);
-                const users = db.collection(tableName);
-                users.findOne(query, function(err, result){
-                    client.close();
+            else if (response){
+                // if value is found in cache
+                const output = {
+                    message: 'Successfully getting user!',
+                    data: JSON.parse(response)
+                };
+                resolve(output);
+            }
+            else {
+                // if cache not found, access main database.
+                mongo.connect(url, function(err,client){
                     if (err){
                         const output = {
                             message: 'Failed to get user.',
@@ -162,22 +177,49 @@ exports.getUser = function(query){
                         };
                         reject(output);
                     }
-                    else {
-                        console.log("Successfully getting user.");
-                        const output = {
-                            message: 'Successfully getting user!',
-                            data: result
-                        };
-                        resolve(output);
+                    if (client) {
+                        const db = client.db(dbName);
+                        const users = db.collection(collectionName);
+                        users.findOne(query, function(err, result){
+                            // close connection to collection
+                            client.close();
+                            if (err){
+                                const output = {
+                                    message: 'Failed to get user.',
+                                    data: err
+                                };
+                                reject(output);
+                            }
+                            else {
+                                if (result) {
+                                    const output = {
+                                        message: 'Successfully getting user!',
+                                        data: result
+                                    };
+
+                                    // set data on cache
+                                    redis.set(queryKey, JSON.stringify(result), function () {
+                                        // return get data
+                                        resolve(output);
+                                    });
+                                }
+                                else {
+                                    const output = {
+                                        message: "Failed to get user: not found"
+                                    };
+                                    reject(output);
+                                }
+                            }
+                        })
                     }
-                })
+                });
             }
         });
     });
 };
 
 exports.updateUser = function(query, newValue){
-    console.log("Updating user...");
+    // console.log("Updating user...");
     return new Promise(function(resolve, reject){
         mongo.connect(url, function(err,client){
             if (err){
@@ -189,7 +231,7 @@ exports.updateUser = function(query, newValue){
             }
             if (client) {
                 const db = client.db(dbName);
-                const users = db.collection(tableName);
+                const users = db.collection(collectionName);
                 const updateValues = {
                     $set: {
                         userName: newValue.userName,
@@ -213,7 +255,7 @@ exports.updateUser = function(query, newValue){
                         reject(output);
                     }
                     else {
-                        console.log("Successfully updated user.");
+                        // console.log("Successfully updated user.");
                         exports.getUser(filteredQuery).then(function(user){
                             const output = {
                                 message: 'Successfully updated user.',

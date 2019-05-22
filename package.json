@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.0",
-    "mongodb": "^3.2.5"
+    "mongodb": "^3.2.5",
+    "redis": "^2.8.0"
   }
 }
