@@ -1,4 +1,5 @@
 const userCtrl = require('./user-controller');
+const url = require('url');
 
 const express = require('express');
 const app = express();
@@ -10,7 +11,15 @@ app.use(express.urlencoded());
 // routing
 app.get('/', function(req, res) {
     res.writeHead(200, {'Content-Type': 'text/html'});
-    res.write('Created by Ericko Yaputro. See the documentation on POSTMAN collection included in the code.');
+    res.write(`Created by Ericko Yaputro. See the documentation on POSTMAN collection included in the code.
+        <br><br>[GET] Get All User: <br>"/user"
+        <br><br>[GET] Get One User: <br>"/user/:id"
+        <br><br>[GET] Get One User By Identity: <br>"/user/identity/:id"
+        <br><br>[GET] Get One User By Account: <br>"/user/account/:id"
+        <br><br>[POST] Add User: <br>"/user"
+        <br><br>[PUT] Update User: <br>"/user/:id"
+        <br><br>[DELETE] Delete User: <br>"/user/:id"
+    `);
     res.end();
 });
 app.get('/user', userCtrl.getAll);

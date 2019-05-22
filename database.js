@@ -1,6 +1,4 @@
 // initiate redis
-// var redisClient = require('redis').createClient;
-// var redis = redisClient(6379, 'localhost');
 var redis;
 
 if (process.env.REDISTOGO_URL) {
@@ -12,9 +10,9 @@ if (process.env.REDISTOGO_URL) {
     redis = require('redis').createClient(6379, 'localhost');
 }
 
-// initiate mongodbs
+// initiate mongodb
 const mongo = require('mongodb').MongoClient;
-const url = 'mongodb://localhost:27017';
+const url = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 const dbName = 'ericko';
 const collectionName = 'users';
 
